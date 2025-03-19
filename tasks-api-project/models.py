@@ -1,13 +1,6 @@
-from datetime import date
 from typing import Optional
-from sqlalchemy.orm import DeclarativeBase, mapped_column
-from sqlalchemy import Integer, create_engine, String
-
-DATABASE_URI = "postgres://postgres:password@localhost/taskmanagement"
-
-# engine is a global object that establishes the connection to our db
-engine = create_engine(DATABASE_URI, echo=False) 
-
+from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
+from sqlalchemy import Integer, String
 class Base(DeclarativeBase):
     pass
 
@@ -19,5 +12,6 @@ class Tasks(Base):
     title = mapped_column(String(30), nullable=False)
     description = mapped_column(String, nullable=False)
     status = mapped_column(String(10), nullable=False)
-    priority: Optional[str] = mapped_column()
-    due_date: Optional[date] = mapped_column()
+    priority: Mapped[Optional[str]] = mapped_column()
+    due_date: Mapped[Optional[str]] = mapped_column()
+    
