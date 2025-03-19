@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 from sqlalchemy import Integer, create_engine, String
@@ -19,4 +20,4 @@ class Tasks(Base):
     description = mapped_column(String, nullable=False)
     status = mapped_column(String(10), nullable=False)
     priority: Optional[str] = mapped_column()
-    due_date: Optional[str] = mapped_column()
+    due_date: Optional[date] = mapped_column()
