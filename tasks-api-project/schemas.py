@@ -8,3 +8,4 @@ class Task(BaseModel):
     status: str
     priority: Optional[str] = None
     due_date: Optional[date] = None
+    is_deleted: Optional[bool] = False

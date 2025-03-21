@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
-from sqlalchemy import Integer, String
+from sqlalchemy import Boolean, Integer, String
 class Base(DeclarativeBase):
     pass
 
@@ -14,4 +14,6 @@ class Tasks(Base):
     status = mapped_column(String, nullable=False)
     priority: Mapped[Optional[str]] = mapped_column()
     due_date: Mapped[Optional[str]] = mapped_column()
+    # soft delete
+    is_deleted = mapped_column(Boolean, default=False, nullable=False)
     
