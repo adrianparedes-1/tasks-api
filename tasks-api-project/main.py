@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, status, HTTPException
+from pydantic import PositiveInt
 from sqlalchemy.orm import Session
 from . import database, models, schemas
 
@@ -15,19 +16,24 @@ def testing(db: Session = Depends(database.get_db)):
 
 # Basic CRUD operations ------------------------------
 @app.get("/tasks")
-def get_tasks(db: Session = Depends(database.get_db)):
-    tasks = db.query(models.Tasks).filter(models.Tasks.is_deleted == False).all()
+def get_tasks(offset: PositiveInt, page_limit: PositiveInt, db: Session = Depends(database.get_db)):
+    tasks = db.query(models.Tasks).filter(models.Tasks.is_deleted == False).offset(offset).limit(page_limit).all()
     return tasks
 
 
 @app.post("/tasks/", status_code=status.HTTP_201_CREATED)
 def create_task(task: schemas.Task, db: Session = Depends(database.get_db)):
     # turn input into dict
-    new_task = models.Tasks(**task.model_dump())
-    db.add(new_task)
+    
+    new_task = task.model_dump(exclude_unset=True)
+    new_task.pop("offset", None)
+    new_task.pop("page_limit", None)
+    task_model = models.Tasks(**new_task)
+    print(task_model)
+    db.add(task_model)
     db.commit()
     
-    return new_task
+    return task_model
 
 
 @app.get("/tasks/{id}")
@@ -62,7 +68,7 @@ def update_task(id: int, task: schemas.Task, db: Session = Depends(database.get_
     if not task_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task with id: {id} was not found.")
 
-    updated_task = task.model_dump() #if task is found, turn it into a dictionary
+    updated_task = task.model_dump(exclude_unset=True) #if task is found, turn it into a dictionary
     task_query.update(updated_task, synchronize_session=False) # use update method and pass the newly created dict
     db.commit()
     return updated_task
@@ -81,10 +87,8 @@ def soft_delete_task(id: int, db: Session = Depends(database.get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task with id: {id} was not found.")
     # instead of deleting from db, just update the is_deleted field to True
     task.is_deleted = True
-    # db.query(models.Tasks).filter(models.Tasks.id == id).update(task.is_deleted, synchronize_session=False)
     # commit to db
     db.commit()
 
 
 
-# Pagination
